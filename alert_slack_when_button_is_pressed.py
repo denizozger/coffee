@@ -1,7 +1,9 @@
 #!/usr/bin/python
+# Recommended usage: $ nohup python3 this_file.py >this_file.py.log 2>&1 </dev/null &
 import os
 import requests
 import time
+from datetime import datetime
 
 import RPi.GPIO as GPIO
 
@@ -32,15 +34,15 @@ def main():
 	GPIO.output(RED, GPIO.HIGH)  # Default state is red
 	while True:
 		if GPIO.input(ButtonPin) == False:  # If the button is pressed, ButtonPin will be "false"
-			print('Button Pressed')
+			print('Button pressed', str(datetime.now()))
 			GPIO.output(RED, GPIO.LOW)
 			GPIO.output(YELLOW, GPIO.HIGH)
 
 			message = { 'text': 'Ready!'}
 			response = requests.post(url, json=message, allow_redirects=True)
-			print(response.status_code)
+			print(response.status_code, str(datetime.now()))
 			if response.status_code == 200:
-				# buzz()
+				buzz()
 				GPIO.output(YELLOW, GPIO.LOW)
 				GPIO.output(GREEN, GPIO.HIGH)
 				time.sleep(5)  # Coffee stays fresh for 40 minutes - I think
@@ -48,12 +50,13 @@ def main():
 				GPIO.output(YELLOW, GPIO.LOW)
 				for x in range(0, 3):
 					GPIO.output(RED, GPIO.HIGH)
-					time.sleep(0.5)
+					buzz()
+					time.sleep(1)
+					GPIO.output(RED, GPIO.LOW)
+					time.sleep(1)
 		else:
-			os.system('clear') # Clears the screen
 			reset_devices()
 			GPIO.output(RED, GPIO.HIGH)
-			print('Waiting for you to press a button')
 			time.sleep(0.5)
 
 def buzz(duration: int=0.3):
